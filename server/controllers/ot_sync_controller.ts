@@ -82,7 +82,18 @@ export default class OTSyncCtrl {
 
           if (controller == null) {
             return Promise.resolve({ type: entry.type, rows: [] })
-          } else { return controller.applyClientChanges(userId, entry.rows.map(str => JSON.parse(str))).then(result => ({ type: entry.type, rows: result })) }
+          } else {
+            return controller.applyClientChanges(userId, entry.rows.map(str => {
+              try {
+                return JSON.parse(str)
+              } catch (ex) {
+                console.error("JSON parsing error during synchronization:")
+                console.error(str)
+                console.error(ex)
+                throw ex
+              }
+            })).then(result => ({ type: entry.type, rows: result }))
+          }
         }
       )
       ).then(results => {
