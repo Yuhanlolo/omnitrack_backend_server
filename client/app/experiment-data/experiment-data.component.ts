@@ -41,7 +41,8 @@ const METADATA_VALUE_TYPE_TABLE = {
   actuallyFiredAt: CellValueType.DATETIME_SECONDS,
   screenAccessedAt: CellValueType.DATETIME_SECONDS,
   accessedDirectlyFromReminder: CellValueType.ENUM,
-  pairedToReminder: CellValueType.ENUM
+  pairedToReminder: CellValueType.ENUM,
+  ModalityChoice: CellValueType.CUSTOM
 }
 
 @Component({
@@ -229,10 +230,37 @@ export class ExperimentDataComponent implements OnInit, OnDestroy {
           case CellValueType.DATE: return new TimePoint(value, item.timezone).toMoment().format("YYYY-MM-DD")
           case CellValueType.DATETIME_MINUTES: return new TimePoint(value, item.timezone).toMoment().format("kk:mm (MMM DD YYYY)") + " " + moment.tz(item.timezone).format("z")
           case CellValueType.DATETIME_SECONDS: return new TimePoint(value, item.timezone).toMoment().format("kk:mm:ss (MMM DD YYYY)") + " " + moment.tz(item.timezone).format("z")
+          case CellValueType.CUSTOM: return this.getModalityChoice(value)
           default: return value
         }
       } else return null
+
     } else return null
+  }
+
+  getModalityChoice(rawData: JSON): string {
+     //const filteredData = _.omit('Id', rawData)
+    //const filteredData = filterObject(rawData, 'Id')
+    let i = 0
+    Object.keys(rawData).forEach(function(key){
+          delete rawData[i].Id
+          delete rawData[i].type
+          delete rawData[i].succeed
+          i ++
+    })
+
+    var processedData = JSON.stringify(rawData)
+    const size = processedData.length
+    processedData = processedData.substring(1, size-1)
+    processedData = processedData.replace(/['"]+/g, '')
+
+    const originalSeparator = "},{"
+    const newSeparator = "}-->{"
+
+    var displayStr = processedData.replaceAll(originalSeparator, newSeparator)
+    displayStr = displayStr.split(',').join(', ')
+
+    return displayStr
   }
 
   getItemCountOfTracker(trackerId: string): Observable<number> {
